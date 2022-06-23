@@ -1,0 +1,100 @@
+{extend name='common/container'}
+{block name="content"}
+<div style="margin:0 15px 15px 15px;">
+<el-card shadow="never" class="card" style="min-height:650px;">
+	<el-form size="small" ref="form" :model="form" :rules="rules" label-width="90px" >
+				<el-row >
+					<el-col :span="24">
+						<el-form-item label="oss状态" prop="oss_type">
+							<el-radio-group v-model="form.oss_type">
+								<el-radio :label="'1'">正常</el-radio>
+								<el-radio :label="'0'">禁用</el-radio>
+							</el-radio-group>
+						</el-form-item>
+					</el-col>
+				</el-row>
+				<el-row v-if="form.oss_type == 1">
+					<el-col :span="24">
+						<el-form-item label="keyid" prop="keyid">
+							<el-input  v-model="form.keyid" autoComplete="off" clearable  placeholder="请输入keyid"></el-input>
+						</el-form-item>
+					</el-col>
+				</el-row>
+				<el-row v-if="form.oss_type == 1">
+					<el-col :span="24">
+						<el-form-item label="secret" prop="secret">
+							<el-input  v-model="form.secret" autoComplete="off" clearable  placeholder="请输入secret"></el-input>
+						</el-form-item>
+					</el-col>
+				</el-row>
+				<el-row v-if="form.oss_type == 1">
+					<el-col :span="24">
+						<el-form-item label="endpoint" prop="endpoint">
+							<el-input  v-model="form.endpoint" autoComplete="off" clearable  placeholder="请输入endpoint"></el-input>
+						</el-form-item>
+					</el-col>
+				</el-row>
+				<el-row v-if="form.oss_type == 1">
+					<el-col :span="24">
+						<el-form-item label="bucket" prop="bucket">
+							<el-input  v-model="form.bucket" autoComplete="off" clearable  placeholder="请输入bucket"></el-input>
+						</el-form-item>
+					</el-col>
+				</el-row>
+		<el-form-item>
+			<el-button size="small" type="primary" @click="submit">保存设置</el-button>
+		</el-form-item>
+	</el-form>
+</el-card>
+</div>
+{/block}
+{block name="script"}
+<script src="__PUBLIC__/assets/js/app.js"></script>
+<script>
+new Vue({
+	el: '#app',
+	components:{
+	},
+	data(){
+		return {
+			form: {
+				oss_type:'1',
+				keyid:'',
+				secret:'',
+				endpoint:'',
+				bucket:'',
+			},
+			loading:false,
+			rules: {
+			}
+		}
+	},
+	mounted(){
+		axios.post(base_url + '/Liandong/getInfo').then(res => {
+			if(res.data.status == 200){
+				this.form = JSON.stringify(res.data.data) == '[]' ? {} : res.data.data
+			}
+		})
+	},
+	methods: {
+		submit(){
+			this.$refs['form'].validate(valid => {
+				if(valid) {
+					this.loading = true
+					axios.post(base_url + '/Liandong/index',this.form).then(res => {
+						if(res.data.status == 200){
+							this.$message({message: res.data.msg, type: 'success'})
+						}else{
+							this.loading = false
+							this.$message.error(res.data.msg)
+						}
+					}).catch(()=>{
+						this.loading = false
+					})
+				}
+			})
+		},
+	}
+})
+</script>
+{/block}

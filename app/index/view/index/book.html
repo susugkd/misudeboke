@@ -1,0 +1,49 @@
+<title>{$media.title}</title>
+<meta name="keywords" content="{$media.keyword}">
+<meta name="description" content="{$media.description}">
+
+<body>
+<div>
+	<ul>
+	{page table="content" order="content_id desc"}
+		<li>用户名：{$page.title} - 电话：{$page.create_time}</li>
+		<li>留言内容：{$page.content}</li>
+	{/page}
+	</ul>
+<div>
+
+<div>{$showpage}</div>
+
+<div>
+<form id="form1" name="form1" method="post" action="{:url('cms/Form/index')}">
+<input type="hidden" value="457" name="form_id">
+  <table id="commentform" width="600" border="0" align="center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td>姓名</td>
+      <td><input name='username' type='text' id='username' size='30' maxlength="30"><span class="FontRed">*</span></td>
+    </tr>
+    <tr>
+      <td>电子邮件</td>
+      <td><input name='email' type='text' id='email' size='30' maxlength="80"></td>
+    </tr>
+	<tr>
+      <td>电话</td>
+      <td><input name='mobile' type='text' id='email' size='30' maxlength="80"></td>
+    </tr>
+    <tr>
+      <td>QQ</td>
+      <td><input name='qq' type='text' id='qq' size='30' maxlength="30"></td>
+    </tr>	
+    <tr>
+      <td>留言内容</td>
+      <td>
+        <textarea name="content" cols="60" rows="7"  value="" ></textarea>
+            <span class="FontRed">*</span></td>    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td><input class="Cbutton" type="submit" value="发表留言"></td>
+    </tr>
+  </table>
+</form>
+</div>
+</body>

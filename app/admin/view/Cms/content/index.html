@@ -1,0 +1,283 @@
+{extend name='common/container'}
+{block name="content"}
+<div style="margin:0 15px 15px 15px;">
+<el-row :gutter="10">
+<el-col :span="4" class="hidden-sm-and-down">
+	<left-tree :treelist="treeList" :search_data.sync="searchData" fieldname="class_id" @refesh_list="index"></left-tree>
+</el-col>
+<el-col :xs="24" :sm="24" :md="20" :lg="20">
+<el-card shadow="never" style="min-height:650px;">
+<div v-if="dialog.showList">
+<div v-if="search_visible" id="search" class="search">
+	<el-form ref="form" size="small" :model="searchData" inline>
+		<el-form-item label="文章标题">
+			<el-input id="title" v-model="searchData.title"  style="width:250px;" placeholder="请输入文章标题"></el-input>
+		</el-form-item>
+		<el-form-item label="所属栏目">
+			<treeselect style="width:150px" :appendToBody="true" :default-expand-level="1" v-model="searchData.class_id" :options="class_id" :normalizer="normalizer" :show-count="true" zIndex="999999" placeholder="请选择所属栏目"/>
+		</el-form-item>
+		<el-form-item label="状态">
+			<el-select style="width:150px" v-model="searchData.status" filterable clearable placeholder="请选择">
+				<el-option key="0" label="开启" value="1"></el-option>
+				<el-option key="1" label="关闭" value="0"></el-option>
+			</el-select>
+		</el-form-item>
+		<el-form-item label="推荐位">
+			<el-select style="width:150px" v-model="searchData.position" filterable clearable placeholder="请选择">
+				<el-option v-for="(item,i) in position" :key="i" :label="item.key" :value="item.val.toString()"></el-option>
+			</el-select>
+		</el-form-item>
+		<search-tool :search_data.sync="searchData" @refesh_list="index"></search-tool>
+	</el-form>
+</div>
+<div class="btn-group" style="margin-top:10px;margin-bottom:10px;">
+	<div>
+		<el-button v-for="item in button_group"  :key="item.access"  v-if="checkPermission(item.access,'{:implode(',',session('admin.access'))}','{:session('admin.role_id')}',[1])" :disabled="$data[item.disabled]" :type="item.color" size="mini" :icon="item.icon" @click="fn(item.clickname)">
+			<span v-if="item.batch" v-text="$data['batchUpdateStatus']?'批量保存':'批量编辑'"></span>
+			<span v-else v-text="item.name"></span>
+		</el-button>
+		
+		<el-select  size="small" style="margin-left:5px; width:130px;vertical-align:middle" class="select"  v-model="action_type" placeholder="请选择操作">
+			<el-option key="100" label="移动" value="100"></el-option>
+			<el-option v-for="(item,i) in position" :key="i" :label="item.key" :value="item.val"></el-option>
+		</el-select>
+		<div v-if="action_type ==100" style="width:250px;display:inline-block;vertical-align:middle; margin-left:5px;" >
+			<treeselect :appendToBody="true" v-model="selectTree.class_id" :default-expand-level="1" :options="class_id" :normalizer="normalizer" :show-count="true" zIndex="999999" placeholder="请选择所属栏目"/>
+		</div>
+		<el-button type="primary" size="mini" style="margin-left:5px;" icon="el-icon-check" @click="setPosition">确定</el-button>
+	</div>
+	<div><table-tool :search_visible.sync="search_visible" ></table-tool></div>
+</div>
+<el-table :row-class-name="rowClass" @selection-change="selection"  @row-click="handleRowClick"  row-key="content_id"  :header-cell-style="{ background: '#eef1f6', color: '#606266' }" v-loading="loading"  ref="multipleTable" border class="eltable" :data="list"  style="width: 100%">
+	<el-table-column align="center" type="selection" width="42"></el-table-column>
+	<el-table-column align="center" type = '' property="content_id" label="编号" width="70">
+	</el-table-column>
+	<el-table-column align="left"  property="title" label="文章标题" show-overflow-tooltip width="">
+		<template slot-scope="scope">
+			{{scope.row.title}} <span style="position:relative;top:9px"><el-image v-if="scope.row.pic" :src="'__PUBLIC__/assets/images/pic.gif'"  :preview-src-list="[scope.row.pic]"></el-image></span> <span v-if="scope.row.position" style="color:#ff0000">[{{formatStr(scope.row.position,position)}}]</span>
+		</template>
+	</el-table-column>
+	<el-table-column align="center"  property="catagory.class_name" label="所属栏目" width="120">
+	</el-table-column>
+	<el-table-column align="center"  property="status" label="状态" width="70">
+		<template slot-scope="scope">
+			<el-switch @change="updateExt(scope.row,'status')" :active-value="1" :inactive-value="0" v-model="scope.row.status"></el-switch>
+		</template>
+	</el-table-column>
+	<el-table-column align="center"  property="create_time" label="发布时间" width="100">
+		<template slot-scope="scope">
+			{{parseTime(scope.row.create_time,'{y}-{m}-{d}')}}
+		</template>
+	</el-table-column>
+	<el-table-column align="center"  property="sortid" label="排序号" width="90">
+		<template class="sort" slot-scope="scope">
+			<el-input @blur.stop="updateExt(scope.row,'sortid')"  size="mini" placeholder="排序号" v-model="scope.row.sortid"></el-input>
+		</template>
+	</el-table-column>
+	<el-table-column :fixed="ismobile()?false:'right'" label="操作" align="center" width="160">
+		<template slot-scope="scope">
+			<div v-if="scope.row.content_id">
+				<el-button v-if="checkPermission('/admin/Cms.Content/update.html','{:implode(",",session("admin.access"))}','{:session("admin.role_id")}',[1])" size="mini" icon="el-icon-edit" type="primary" @click="update(scope.row)" >修改</el-button>
+				<el-button v-if="checkPermission('/admin/Cms.Content/delete.html','{:implode(",",session("admin.access"))}','{:session("admin.role_id")}',[1])" size="mini" icon="el-icon-delete" type="danger" @click="del(scope.row)" >删除</el-button>
+			</div>
+		</template>
+	</el-table-column>
+</el-table>
+<Page :total="page_data.total" :page.sync="page_data.page" :limit.sync="page_data.limit" @pagination="index" />
+</div>
+
+<Add v-if="dialog.addDialogStatus" :catagory_list="class_id" size="small" :position_list="position" @changepage="changepage" @refesh_list="index"></Add>
+
+<Update v-if="dialog.updateDialogStatus" :catagory_list="class_id" :position_list="position" @changepage="changepage" :info="updateInfo" :extend_data="extendData" :extend_list="extendList" size="small" @refesh_list="index"></Update>
+
+</el-card>
+</el-col>
+</el-row>
+
+
+</div>
+{/block}
+{block name="script"}
+<script src="__PUBLIC__/assets/js/app.js"></script>
+<script src="__PUBLIC__/assets/libs/treeselect/vue-treeselect.umd.min.js"></script>
+<link rel="stylesheet" href="__PUBLIC__/assets/libs/treeselect/vue-treeselect.min.css">
+<script src="__PUBLIC__/assets/libs/vuedragable/Sortable.min.js"></script>
+<script src="__PUBLIC__/assets/libs/vuedragable/vuedraggable.umd.min.js"></script>
+<script src="__PUBLIC__/components/admin/cms/cms.extend.js"></script>
+<script src="__PUBLIC__/components/admin/cms/content/add.js?v=<?php echo rand(1000,9999)?>"></script>
+<script src="__PUBLIC__/components/admin/cms/content/update.js?v=<?php echo rand(1000,9999)?>"></script>
+<script>
+new Vue({
+	el: '#app',
+	components:{
+		'treeselect':VueTreeselect.Treeselect,
+	},
+	data: function() {
+		return {
+			dialog: {
+				showList:true,
+				addDialogStatus : false,
+				updateDialogStatus : false,
+			},
+			searchData:{},
+			button_group:[
+				{name:'添加',color:'success',access:'/admin/Cms.Content/add.html',icon:'el-icon-plus',disabled:'',clickname:'add'},
+				{name:'修改',color:'primary',access:'/admin/Cms.Content/update.html',icon:'el-icon-edit',disabled:'single',clickname:'update'},
+				{name:'删除',color:'danger',access:'/admin/Cms.Content/delete.html',icon:'el-icon-delete',disabled:'multiple',clickname:'del'},
+			],
+			loading: false,
+			page_data: {
+				limit: 20,
+				page: 1,
+				total:20,
+			},
+			ids: [],
+			single:true,
+			multiple:true,
+			search_visible:true,
+			list: [],
+			treeList:[],
+			class_id: [],
+			position: [],
+			updateInfo:{},
+			action_type:'',
+			selectTree:{},
+			extendList:[],
+			extendData:{},
+		}
+	},
+	methods:{
+		index(){
+			let param = {limit:this.page_data.limit,page:this.page_data.page}
+			Object.assign(param, this.searchData)
+			this.loading = true
+			axios.post(base_url + '/Cms.Content/index',param).then(res => {
+				if(res.data.status == 200){
+					this.list = res.data.data.data
+					this.page_data.total = res.data.data.total
+					this.loading = false
+					if(this.page_data.page == 1){
+						this.treeList = res.data.sql_field_data.class_ids
+						this.class_id = res.data.sql_field_data.class_ids
+						this.position = res.data.sql_field_data.positions
+					}
+				}else{
+					this.$message.error(res.data.msg);
+				}
+			})
+		},
+		updateExt(row,field){
+			if(row.content_id){
+				axios.post(base_url + '/Cms.Content/updateExt',{content_id:row.content_id,[field]:row[field]}).then(res =>{
+					if(res.data.status == 200){
+						this.$message({message: res.data.msg, type: 'success'})
+					}else{
+						this.$message.error(res.data.msg)
+					}
+				})
+			}
+		},
+		setPosition(){
+			if(this.action_type == ''){
+				this.$message.error('请选择操作')
+				return false
+			}
+			if(JSON.stringify(this.ids) == "{}"){
+				this.$message.error('请选择操作的数据')
+				return false
+			}
+			if(this.action_type == 100 && this.selectTree.class_id == undefined){
+				this.$message.error('请选择栏目')
+				return false
+			}
+			this.$confirm('确定操作吗?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				axios.post(base_url+'/Cms.Content/setPosition',{content_id:this.ids,action_type:this.action_type,class_id:this.selectTree.class_id}).then(res=>{
+					this.$message({message: '操作成功', type: 'success'})
+					this.index()
+				})
+			})
+		},
+		add(){
+			this.dialog.showList = false
+			this.dialog.addDialogStatus = true
+			this.dialog.updateDialogStatus = false
+		},
+		update(row){
+			let id = row.content_id ? row.content_id : this.ids.join(',')
+			axios.post(base_url + '/Cms.Content/getInfo',{content_id:id}).then(res => {
+				if(res.data.status == 200){
+					this.dialog.updateDialogStatus = true
+					this.dialog.showList = false
+					this.dialog.addDialogStatus = false
+					this.updateInfo = res.data.data
+					this.extendData = res.data.extendData ? res.data.extendData : {}
+					this.extendList = res.data.extendList
+				}else{
+					this.$message.error(res.data.msg)
+				}
+			})
+		},
+		del(row){
+			this.$confirm('确定操作吗?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				let ids = row.content_id ? row.content_id : this.ids.join(',')
+				axios.post(base_url + '/Cms.Content/delete',{content_id:ids}).then(res => {
+					if(res.data.status == 200){
+						this.$message({message: res.data.msg, type: 'success'})
+						this.index()
+					}else{
+						this.$message.error(res.data.msg)
+					}
+				})
+			}).catch(() => {})
+		},
+		selection(selection) {
+			this.ids = selection.map(item => item.content_id)
+			this.single = selection.length != 1
+			this.multiple = !selection.length
+		},
+		handleRowClick(row, rowIndex,event){
+			if(event.target.className !== 'el-input__inner'){
+				this.$refs.multipleTable.toggleRowSelection(row)
+			}
+		},
+		rowClass ({ row, rowIndex }) {
+			for(let i=0;i<this.ids.length;i++) {
+				if (row.content_id === this.ids[i]) {
+					return 'rowLight'
+				}
+			}
+		},
+		/** 转换菜单数据结构 */
+		normalizer(node) {
+			if (node.children && !node.children.length) {
+				delete node.children
+			}
+			return {
+				id: node.val,
+				label: node.key,
+				children: node.children
+			}
+		},
+		changepage(){
+			this.dialog.showList = true
+			this.dialog.addDialogStatus = false
+			this.dialog.updateDialogStatus = false
+		},
+		fn(method){
+			this[method](this.ids)
+		},
+	},
+	mounted(){
+		this.index()
+	},
+})
+</script>
+{/block}

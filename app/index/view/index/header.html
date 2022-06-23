@@ -1,0 +1,40 @@
+<header class="header sb">
+    <div class="h-wrap container clearfix">
+        <h1 class="logo-area fl"> <a href="/index.html"  title="新闻博客文章日记资讯类网织梦模板"> <img class="img" style="width: 140px" src="__PUBLIC__/static/cms/images/logo.png" alt="新闻博客文章日记资讯类网织梦模板" title="新闻博客文章日记资讯类网织梦模板"/> </a> </h1>
+        <div class="m-nav-btn"><i class="iconfont icon-category"></i></div>
+        <nav class="responsive-nav">
+            <div class="pc-nav m-nav fl" data-type="index"  data-infoid="index">
+                <ul class="nav-ul">
+                    <li><a class="active" href="/index.html" >首页</a></li>
+                    {class sqlstr="class_id not in(1,2,6)"}
+                        {if $class.pid == 2}
+                             <li><a href='{:U($class.class_id)}'>
+                                 {$class.class_name}
+                                </a>
+                                 {if !$class.subtitle}
+                                 <span class="toggle-btn"><i class="iconfont icon-down"></i></span>
+                                 <ul id="ud{$key}" class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu">
+                                 {/if}
+                                 {classs sqlstr=""}
+                                 {if $classs.pid != 2 && $classs.pid == $class.class_id}
+                                     <li><a href="{:U($classs.class_id)}" >{$classs.class_name}</a></li>
+                                 {/if}
+                                 {/classs}
+                                     {if !$class.subtitle}
+                                 </ul>
+                                 {/if}
+                             </li>
+                         {/if}
+                    {/class}
+                </ul>
+            </div>
+        </nav>
+        <span id="search-button" class="search-button fr"><i class="iconfont icon-search"></i></span>
+        <div id="search-area" class="container hidden br sb animated-fast fadeInUpMenu">
+            <form  name="formsearch" class="searchform clearfix" action="/index/search/6.html"  method="POST">
+                <input class="s-input br fl" type="text" name="name" placeholder="请输入关键词...">
+                <button class="s-button fr br transition brightness" type="submit" id="searchsubmit">搜 索</button>
+            </form>
+        </div>
+    </div>
+</header>
