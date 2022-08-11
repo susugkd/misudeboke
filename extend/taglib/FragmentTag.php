@@ -8,7 +8,7 @@ class FragmentTag extends TagLib
 
     protected $tags = array(
 		'relate'     => ['attr' => 'sqlstr','level'=>3],
-		'newslist'=>['attr'=>'classid,field,order,num,sqlstr,flag,group,result,empty,cache,extend','level'=>3],
+		'newslist'=>['attr'=>'classid,field,order,views,num,sqlstr,flag,group,result,empty,cache,extend','level'=>3],
 		'list'=>['attr'=>'table,classid,field,num,order,sqlstr,cache','level'=>3],
 		'query'=>['attr'=>'table,field,num,order,sqlstr,cache','level'=>3],
 		'class'=>['attr'=>'field,num,order,sqlstr,cache','level'=>3],
@@ -126,9 +126,9 @@ class FragmentTag extends TagLib
 		$map.=($tag['sqlstr'])?" and {$tag['sqlstr']} ":"";
         $sql ="db('content')->";
 		if($tag['extend']){
-			$sql.=($tag['field'])?"field('a.content_id,a.title,a.pic,a.jumpurl,a.create_time,a.class_id,{$tag['field']}')->":"field('a.content_id,a.title,a.pic,a.jumpurl,a.create_time')->";
+			$sql.=($tag['field'])?"field('a.content_id,a.title,a.views,a.pic,a.jumpurl,a.create_time,a.class_id,{$tag['field']}')->":"field('a.content_id,a.views,a.title,a.pic,a.jumpurl,a.create_time')->";
 		}else{
-			$sql.=($tag['field'])?"field('content_id,title,pic,jumpurl,create_time,class_id,{$tag['field']}')->":"field('content_id,title,pic,jumpurl,create_time,class_id')->";
+			$sql.=($tag['field'])?"field('content_id,title,pic,jumpurl,views,create_time,class_id,{$tag['field']}')->":"field('content_id,title,views,pic,jumpurl,create_time,class_id')->";
 		}
 		$sql.=($tag['extend'])?"alias('a')->":"";
 		$sql.=($tag['extend'])?"join('{$tag['extend']} b','a.content_id=b.content_id')->":"";

@@ -2,7 +2,7 @@
 
 namespace app\index\controller;
 use app\index\service\BaseService;
-
+use app\index\model\Content;
 class Index extends Base
 {
 	

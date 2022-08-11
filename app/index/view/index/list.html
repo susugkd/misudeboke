@@ -47,7 +47,13 @@
             <div class="new-post">
                 {list  num="10"}
                 <article class="article-list br mb sb clearfix">
-                    <figure class="figure fl"> <a class="thumbnail" href="{$list.url}"> <img class="img-cover br" src="{$list.pic}" alt="网站SEO优化不单单是做排名，同时也是做品牌积累！"> </a> </figure>
+                    <figure class="figure fl"> <a class="thumbnail" href="{$list.url}">
+                        {if $list.pic != ''}
+                        <img class="img-cover br" src="{$list.pic}">
+                        {/if}
+                        <img class="img-cover br" src="__PUBLIC__/static/cms/images/lbg.jpg">
+
+                    </a> </figure>
                     <div class="content">
                         <h2 class="title ellipsis m-multi-ellipsis"><a href="{$list.url}" >{$list.title}</a></h2>
                         <p class="intro hidden-sm">{$list.description}</p>

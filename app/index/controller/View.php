@@ -5,6 +5,7 @@ use app\index\service\CatagoryService;
 use app\index\facade\Cat;
 use app\index\model\Content;
 use app\index\model\Catagory;
+use app\index\model\Pro;
 
 
 class View extends Base
@@ -43,6 +44,7 @@ class View extends Base
 		$this->view->assign('pname',$topCategoryInfo['class_name']);  //最上级栏目名称
 		$this->view->assign('pid',$topCategoryInfo['class_id']);	//最上级栏目ID
 		$this->view->assign('position', $position); //面包屑信息
+        $this->view->assign('pro', Pro::where('content_id',$content_id)->field('file')->find()); //面包屑信息
 		$this->view->assign('info',$contentInfo);
 		$this->view->assign('shownext', BaseService::shownext($content_id,$contentInfo['class_id']));
 		$this->view->assign('sub_data', Catagory::where('pid',$topCategoryInfo['class_id'])->count()); //判断是否有子分类
